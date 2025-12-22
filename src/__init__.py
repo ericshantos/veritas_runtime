@@ -1,17 +1,24 @@
-from .server import ServerLauncher
+import logging
+from typing import Union
+
+
+def setup_logging(level: Union[int, str]) -> None:
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+setup_logging(logging.DEBUG)
+
+from .server import Launcher
 from .core import classifier
-from .utils import EnvLoader
 
-env_loader = EnvLoader("HOST", "PORT")
 
-launcher = ServerLauncher(
-    classifier, 
-    env_loader.get("HOST", '0.0.0.0'), 
-    int(env_loader.get("PORT", 9000))
-)
+launcher = Launcher(classifier)
 
 __author__ = "Eric Santos <ericshantos13@gmail.com>"
 
 __all__ = ["launcher"]
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"

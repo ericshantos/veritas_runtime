@@ -11,13 +11,13 @@ loader = ModelLoader(
 
 text_cleaner = TextCleaner()
 
-new_predictor = Predictor(
+news_predictor = Predictor(
     model=loader.model,
     tokenizer=loader.tokenizer
 )
 
 classifier = NewsClassifier(
-    new_predictor,
+    news_predictor,
     text_cleaner
 )
 

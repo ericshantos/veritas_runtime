@@ -1,58 +1,126 @@
 # -*- coding: utf-8 -*-
 """
-@Author  : Eric dos Santos (ericshantos13@gmail.com)
-Module responsible for making predictions using a trained deep learning model.
+@Author: Eric Santos <ericshantos13@gmail.com>
+Launcher module for the fake news prediction server.
 """
 
-import logging, socket, threading
+import json
+import logging
+import asyncio
+import websockets
 from ..core import NewsClassifier
 
-class ServerLauncher:
-    def __init__(self, classifier: NewsClassifier, HOST: str, PORT: int):
+logger = logging.getLogger(__name__)
+
+
+class Launcher:
+    """
+    WebSocket server launcher for handling prediction requests.
+
+    This class encapsulates the logic required to:
+        - Accept WebSocket connections
+        - Receive text-based messages
+        - Perform asynchronous predictions using a trained model
+        - Send structured JSON responses back to clients
+
+    The prediction itself is executed in a separate thread in order to
+    avoid blocking the asyncio event loop.
+    """
+
+    def __init__(self, classifier: NewsClassifier) -> None:
+        """
+        Initialize the Launcher with a trained classifier.
+
+        Args:
+            classifier (NewsClassifier):
+                An instance of a trained news classification model
+                responsible for performing predictions.
+        """
         self.classifier = classifier
-        self.host = HOST
-        self.port = PORT
-        
-    def handle_connection(self, conn: socket.socket) -> None:
-        with conn:
-            try:
-                data = b''
-                while True:
-                    chunk = conn.recv(4096)
-                    if not chunk:
-                        break
-                    data += chunk
-                    if b'\n' in chunk:
-                        break
-                
-                if not data:
-                    return
-                    
-                text = data.decode('utf-8').strip()
-                result = str(self.classifier.predict(text))
-                conn.sendall((result + '\n').encode('utf-8'))
-            except Exception as e:
-                logging.error(f"Connection error: {str(e)}")
-                conn.sendall(b'ERROR\n')
 
-    def init(self) -> None:
+    async def handler(
+        self,
+        websocket: websockets.WebSocketServerProtocol
+    ) -> None:
         """
-        Starts the TCP server and listens for incoming connections.
+        Handle a WebSocket client connection.
 
-        This function sets up a server that listens on the specified port. When a connection
-        is made, it receives the news article, runs the prediction pipeline, and returns the
-        result to the client.
+        This coroutine is invoked for each new client connection.
+        It listens for incoming messages, validates them, triggers
+        predictions, and sends back JSON-formatted responses.
 
-        It runs continuously, accepting and processing requests until manually terminated.
+        Args:
+            websocket (websockets.WebSocketServerProtocol):
+                The active WebSocket connection with the client.
+
+        Raises:
+            websockets.ConnectionClosed:
+                Raised when the client closes the connection.
         """
+        logger.info("[CONNECTION ESTABLISHED]")
+
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind((self.host, self.port))
-                s.listen()
-                logging.info(f"Listening on {self.host}:{self.port}")
+            async for message in websocket:
+                logger.debug(f"[RECEIVED MESSAGE] {message}")
 
-                while True:
-                    conn, _ = s.accept()
-                    threading.Thread(target=self.handle_connection, args=(conn,)).start()
-        except Exception as e:
-            logging.error(f"[CRITICAL] Server failed to start: {e}")     
+                if not isinstance(message, str) or not message.strip():
+                    logger.warning("[INVALID MESSAGE TYPE]")
+
+                    await websocket.send(json.dumps({
+                        "ok": False,
+                        "message": "Invalid message. Please send a non-empty string."
+                    }))
+                    continue
+
+                try:
+                    prediction = await asyncio.to_thread(
+                        self.classifier.predict,
+                        message
+                    )
+
+                    response = json.dumps({
+                        "ok": True,
+                        "prediction": prediction
+                    })
+
+                except Exception as exc:
+                    logger.exception(f"[PREDICTION ERROR] {exc}")
+
+                    response = json.dumps({
+                        "ok": False,
+                        "message": "An error occurred during prediction."
+                    })
+
+                await websocket.send(response)
+                logger.debug(f"[SENT RESPONSE] {response}")
+
+        except websockets.ConnectionClosed:
+            logger.info("[CONNECTION CLOSED]")
+
+        except Exception as exc:
+            logger.exception(f"[HANDLER ERROR] {exc}")
+
+    async def run(self, host: str, port: int) -> None:
+        """
+        Start the WebSocket server and keep it running indefinitely.
+
+        This method binds the server to the specified host and port
+        and blocks execution until the task is cancelled.
+
+        Args:
+            host (str):
+                Host address where the server will listen (e.g., "localhost").
+            port (int):
+                TCP port number for the WebSocket server.
+
+        Raises:
+            asyncio.CancelledError:
+                Raised when the server task is cancelled during shutdown.
+        """
+        logger.info(f"[SERVER RUNNING] on ws://{host}:{port}")
+
+        async with websockets.serve(self.handler, host, port):
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                logger.info("[SERVER SHUTTING DOWN]")

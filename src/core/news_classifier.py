@@ -4,35 +4,61 @@
 Module for preprocessing and cleaning Portuguese text data using spaCy.
 """
 
+
+from typing import Final
 import logging
-import traceback
-import sys
-from typing import Union
 
 from .cleaner import TextCleaner
 from .predictor import Predictor
 
 
-class NewsClassifier:
-    def __init__(self, predictor: Predictor, cleaner: TextCleaner) -> None:
-        self.cleaner = cleaner
-        self.predictor = predictor
+logger = logging.getLogger(__name__)
 
-    def predict(self, text: str) -> Union[float, int]:
+
+class NewsClassifier:
+    """
+    Orchestrates text cleaning and prediction for fake news classification.
+    """
+
+    def __init__(self, predictor: Predictor, cleaner: TextCleaner) -> None:
+        self._predictor: Final = predictor
+        self._cleaner: Final = cleaner
+
+        self._validate_dependencies()
+
+    def _validate_dependencies(self) -> None:
+        if not callable(self._cleaner):
+            raise TypeError("Cleaner must be callable")
+
+        if not callable(self._predictor):
+            raise TypeError("Predictor must be callable")
+
+    def predict(self, text: str) -> float:
         """
-        Predicts the likelihood or class of a news article being fake.
+        Predicts the probability of a news article being fake.
 
         Args:
             text (str): Raw news article text.
 
         Returns:
-            float | int: Probability score or class label.
+            float: Probability score between 0 and 1.
         """
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("Input text must be a non-empty string")
+
+        logger.debug("Starting prediction")
+
         try:
-            cleaned = self.cleaner(text)
-            return self.predictor.predict(cleaned)
-        except Exception as e:
-            logging.error("Prediction error: %s", str(e))
-            traceback.print_exc(file=sys.stderr)
-            raise RuntimeError("Prediction failed.") from e
-        
+            cleaned_text = self._cleaner(text)
+
+            if not cleaned_text:
+                raise ValueError("Text cleaning resulted in empty output")
+
+            score = self._predictor(cleaned_text)
+
+            logger.debug("Prediction completed successfully")
+            return score
+
+        except Exception:
+            logger.exception("Prediction pipeline failed")
+            raise
