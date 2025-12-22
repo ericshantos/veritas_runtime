@@ -14,7 +14,7 @@
 ## 📌 Descrição
 
 O **veritas_runtime** é um runtime de inferência em Python para **classificação de fake news em português**, projetado para uso em produção.  
-Ele encapsula todo o pipeline de **pré-processamento de texto, carregamento de modelo deep learning (LSTM)** e **exposição de serviço via servidor TCP**, com suporte nativo a Docker.
+Ele encapsula todo o pipeline de **pré-processamento de texto, carregamento de modelo deep learning (LSTM)** e **exposição de serviço via servidor WebSocket**, com suporte nativo a Docker.
 
 Este repositório é ideal para **deploy de modelos NLP**, integração com APIs, microsserviços ou pipelines distribuídos.
 
@@ -30,6 +30,9 @@ Este repositório é ideal para **deploy de modelos NLP**, integração com APIs
     - [Machine Learning \& NLP](#machine-learning--nlp)
     - [Infraestrutura](#infraestrutura)
   - [🧱 Arquitetura do Projeto](#-arquitetura-do-projeto)
+  - [🧹 Pré-processamento de Texto](#-pré-processamento-de-texto)
+  - [🚀 Execução via Docker](#-execução-via-docker)
+    - [1️⃣ Pull da imagem](#1️⃣-pull-da-imagem)
     - [2️⃣ Executar o container](#2️⃣-executar-o-container)
   - [🔌 Comunicação com o Servidor](#-comunicação-com-o-servidor)
   - [🌐 Docker Hub](#-docker-hub)
@@ -66,7 +69,7 @@ Visão geral da estrutura do repositório:
 ```
 
 veritas_runtime/
-├── app.py                     # Entry point da aplicação
+├── server.py                     # Entry point da aplicação
 ├── Dockerfile                 # Build da imagem Docker
 ├── requirements.txt           # Dependências do projeto
 ├── LICENSE                    # Licença MIT
@@ -75,20 +78,17 @@ veritas_runtime/
 │   └── workflows/
 │       └── docker-build.yaml  # CI para build e push no Docker Hub
 └── src/
-├── **init**.py            # Inicialização do runtime
+├── init.py            # Inicialização do runtime
 ├── server/
-│   ├── **init**.py
-│   └── launcher.py        # Servidor TCP
-├── core/
-│   ├── **init**.py
-│   ├── news_classifier.py # Orquestrador do pipeline
-│   ├── cleaner.py         # Pré-processamento NLP
-│   ├── model_loader.py    # Carregamento do modelo
-│   └── predictor.py       # Inferência
-└── utils/
-├── **init**.py
-└── env_loader.py      # Gerenciamento de variáveis de ambiente
-
+│   ├── init.py
+│   └── launcher.py        # Servidor WebSocket
+└── core/
+    ├── init.py
+    ├── news_classifier.py # Orquestrador do pipeline
+    ├── cleaner.py         # Pré-processamento NLP
+    ├── model_loader.py    # Carregamento do modelo
+    └── predictor.py       # Inferência
+```
 
 ---
 
@@ -136,10 +136,9 @@ PORT: 9000
 
 ## 🔌 Comunicação com o Servidor
 
-O runtime utiliza **TCP socket**.
+O runtime utiliza **WebSocket**.
 
 * Envie o texto da notícia (UTF-8)
-* Finalize com `\n`
 * Receba como resposta um **score float entre 0 e 1**
 
 Exemplo de resposta:
@@ -165,7 +164,7 @@ O runtime suporta as seguintes variáveis:
 | Variável | Descrição             | Padrão    |
 | -------- | --------------------- | --------- |
 | HOST     | Endereço do servidor  | `0.0.0.0` |
-| PORT     | Porta do servidor TCP | `9000`    |
+| PORT     | Porta do servidor WebSocket | `9000`    |
 
 Exemplo:
 

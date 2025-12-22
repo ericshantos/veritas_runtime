@@ -14,7 +14,7 @@
 ## 📌 Description
 
 **veritas_runtime** is a Python-based inference runtime for **fake news classification in Portuguese**, designed for production use.  
-It encapsulates the complete pipeline for **text preprocessing, deep learning model loading (LSTM)**, and **service exposure via a TCP server**, with native Docker support.
+It encapsulates the complete pipeline for **text preprocessing, deep learning model loading (LSTM)**, and **service exposure via a WebSocket server**, with native Docker support.
 
 This repository is ideal for **deploying NLP models**, integration with APIs, microservices, or distributed pipelines.
 
@@ -81,17 +81,13 @@ veritas_runtime/
 ├── **init**.py            # Runtime initialization
 ├── server/
 │   ├── **init**.py
-│   └── launcher.py        # TCP server
-├── core/
-│   ├── **init**.py
-│   ├── news_classifier.py # Pipeline orchestrator
-│   ├── cleaner.py         # NLP preprocessing
-│   ├── model_loader.py    # Model loading
-│   └── predictor.py       # Inference
-└── utils/
-├── **init**.py
-└── env_loader.py      # Environment variable management
-
+│   └── launcher.py        # WebSocket server
+└── core/
+    ├── **init**.py
+    ├── news_classifier.py # Pipeline orchestrator
+    ├── cleaner.py         # NLP preprocessing
+    ├── model_loader.py    # Model loading
+    └── predictor.py       # Inference
 ````
 
 ---
@@ -140,10 +136,9 @@ PORT: 9000
 
 ## 🔌 Server Communication
 
-The runtime uses a **TCP socket**.
+The runtime uses a **WebSocket**.
 
 * Send the news text (UTF-8 encoded)
-* End the message with `\n`
 * Receive a **float score between 0 and 1** as response
 
 Example response:
@@ -169,7 +164,7 @@ The runtime supports the following environment variables:
 | Variable | Description     | Default   |
 | -------- | --------------- | --------- |
 | HOST     | Server address  | `0.0.0.0` |
-| PORT     | TCP server port | `9000`    |
+| PORT     | WebSocket server port | `9000`    |
 
 Example:
 
