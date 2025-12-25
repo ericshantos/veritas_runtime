@@ -1,26 +1,37 @@
+from dataclasses import dataclass
 from .news_classifier import NewsClassifier
 from .predictor import Predictor
 from .cleaner import TextCleaner
 from .model_loader import ModelLoader
 
-loader = ModelLoader(
-    repo_id="ericshantos/veritas-lstm-ptbr",
-    model_filename="veritas-lstm-ptbr.keras",
-    tokenizer_filename="tokenizer.pkl"
-)
+class Factory:
+    @staticmethod
+    def create_classifier(
+        repo_id: str, 
+        model_filename: str, 
+        tokenizer_filename: str
+    ) -> NewsClassifier:
+        loader = ModelLoader(
+            repo_id=repo_id,
+            model_filename=model_filename,
+            tokenizer_filename=tokenizer_filename
+        )
 
-text_cleaner = TextCleaner()
+        text_cleaner = TextCleaner()
 
-news_predictor = Predictor(
-    model=loader.model,
-    tokenizer=loader.tokenizer
-)
+        news_predictor = Predictor(
+            model=loader.model,
+            tokenizer=loader.tokenizer
+        )
 
-classifier = NewsClassifier(
-    news_predictor,
-    text_cleaner
-)
+        classifier = NewsClassifier(
+            news_predictor,
+            text_cleaner
+        )
 
-__all__ = ["classifier"]
+        return classifier
+
+
+__all__ = ["Factory"]
 
 __author__ = "Eric Santos <ericshantos13@gmail.com>"
