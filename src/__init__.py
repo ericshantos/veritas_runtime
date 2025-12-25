@@ -21,4 +21,4 @@ __author__ = "Eric Santos <ericshantos13@gmail.com>"
 
 __all__ = ["launcher"]
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"

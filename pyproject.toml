@@ -1,0 +1,12 @@
+[project]
+name = "veritas_runtime"
+requires-python = ">=3.10"
+readme = "README.md"
+
+dependencies = [
+    "tensorflow>=2.20.0",
+    "Unidecode>=1.4.0",
+    "spacy>=3.8.11",
+    "huggingface_hub>=1.2.3"
+    "websockets>=15.0.1"
+]
