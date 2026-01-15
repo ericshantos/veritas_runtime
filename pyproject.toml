@@ -4,9 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "veritas-runtime"
-version = "2.2.0"
+version = "2.2.1"
+description = "API that analyzes news content and verifies its veracity using AI."
 requires-python = ">=3.10"
 readme = "README.md"
+license = { text = "MIT" }
+
+authors = [
+    { name = "Eric Santos", email = "ericshantos13@gmail.com" }
+]
 
 dependencies = [
     "tensorflow>=2.15.0",

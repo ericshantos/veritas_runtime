@@ -6,6 +6,9 @@ COPY pyproject.toml .
 COPY src ./src
 COPY server.py .
 
+RUN pip install spacy \
+    && python -m spacy download pt_core_news_sm
+
 RUN apt-get update && apt-get install -y \
     build-essential gcc libffi-dev libssl-dev \
     && python -m pip install --no-cache-dir . \
