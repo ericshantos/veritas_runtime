@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "veritas-runtime"
-version = "2.2.1"
+version = "2.2.2"
 description = "API that analyzes news content and verifies its veracity using AI."
 requires-python = ">=3.10"
 readme = "README.md"
@@ -19,5 +19,6 @@ dependencies = [
     "Unidecode>=1.4.0",
     "spacy>=3.8.0",
     "huggingface_hub>=0.20.0",
-    "websockets>=15.0.1"
+    "websockets>=15.0.1",
+    "python-dotenv"
 ]
