@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 ENV PORT=9000
 ENV HOST=0.0.0.0
 
-ENV REPO_ID="ericshantos/veritas-lstm-ptbr"
+ENV MODEL_REPO_ID="ericshantos/veritas-lstm-ptbr"
 ENV MODEL_FILENAME="veritas-lstm-ptbr.keras"
 ENV TOKENIZER_FILENAME="tokenizer.pkl"
 

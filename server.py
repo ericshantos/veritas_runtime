@@ -4,16 +4,18 @@
 Main module for running the fake news prediction pipeline over network connections.
 """
 
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 
 import logging
 import warnings
 from src import launcher, setup_logging
-from dotenv import load_dotenv
 import asyncio
 import os
 
-
-load_dotenv()
 
 if __name__ == "__main__":
     setup_logging(logging.DEBUG)

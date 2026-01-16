@@ -14,6 +14,15 @@ logger = logging.getLogger(__name__)
 
 class ModelLoader:
     def __init__(self, repo_id: str, model_filename: str, tokenizer_filename: str) -> None:
+        if not repo_id:
+            raise ValueError("REPO_ID environment variable is not set")
+
+        if not model_filename:
+            raise ValueError("MODEL_FILENAME environment variable is not set")
+
+        if not tokenizer_filename:
+            raise ValueError("TOKENIZER_FILENAME environment variable is not set")
+
         self.repo_id = repo_id
         self.model_filename = model_filename
         self.tokenizer_filename = tokenizer_filename
