@@ -4,67 +4,63 @@
 Module responsible for loading dependencies required for prediction.
 """
 
-import pickle
 import logging
-from huggingface_hub import hf_hub_download
-from tensorflow.keras.models import load_model
+from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
 
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
+)
+
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
-class ModelLoader:
-    def __init__(self, repo_id: str, model_filename: str, tokenizer_filename: str) -> None:
+
+class Loader(ABC, Generic[T]):
+    def __init__(self, repo_id: str) -> None:
         if not repo_id:
-            raise ValueError("REPO_ID environment variable is not set")
+            raise ValueError("repo_id not provided")
 
-        if not model_filename:
-            raise ValueError("MODEL_FILENAME environment variable is not set")
+        self._repo_id = repo_id
 
-        if not tokenizer_filename:
-            raise ValueError("TOKENIZER_FILENAME environment variable is not set")
+        self._resource: T | None = None
 
-        self.repo_id = repo_id
-        self.model_filename = model_filename
-        self.tokenizer_filename = tokenizer_filename
+    @abstractmethod
+    def _load(self) -> T:
+        pass
 
-        self.model = self._load_model()
-        self.tokenizer = self._load_tokenizer()
+    @property
+    def instance(self) -> T:
+        if self._resource is None:
+            self._resource = self._load()
+        return self._resource
 
-    def _load_model(self):
+
+class MyTokenizer(Loader[PreTrainedTokenizerBase]):
+    def _load(self) -> PreTrainedTokenizerBase:
         try:
-            logging.info("Downloading model from Hugging Face Hub...")
+            logger.info("Loading tokenizer...")
+            return AutoTokenizer.from_pretrained(self._repo_id, local_files_only=True)
+        except Exception as e:
+            logger.exception("Tokenizer load failed")
+            raise RuntimeError("Failed to load tokenizer") from e
 
-            model_path = hf_hub_download(
-                repo_id=self.repo_id,
-                filename=self.model_filename
+
+class MyModel(Loader[PreTrainedModel]):
+    def _load(self) -> PreTrainedModel:
+        try:
+            logger.info("Loading model...")
+            model = AutoModelForSequenceClassification.from_pretrained(
+                self._repo_id, local_files_only=True
             )
 
-            logging.info("Loading TensorFlow model.")
-            model = load_model(model_path)
+            model.eval()
             return model
 
         except Exception as e:
-            logger.error(f"Error loading model: {e}")
+            logger.exception("Model load failed")
             raise RuntimeError("Failed to load model") from e
-    
-    def _load_tokenizer(self):
-        try:
-            logger.info("Downloading tokenizer from Hugging Face Hub")
-            tokenizer_path = hf_hub_download(
-                repo_id=self.repo_id,
-                filename=self.tokenizer_filename
-            )
-
-            logger.info("Loading tokenizer")
-            with open(tokenizer_path, "rb") as f:
-                tokenizer = pickle.load(f)
-
-            if not hasattr(tokenizer, "texts_to_sequences"):
-                raise TypeError("Loaded object is not a valid tokenizer")
-
-            return tokenizer
-
-        except Exception as e:
-            logger.exception("Failed to load tokenizer")
-            raise RuntimeError("Tokenizer loading failed") from e
-        

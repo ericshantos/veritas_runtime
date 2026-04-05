@@ -1,30 +1,34 @@
-import os
 import logging
+import os
 from typing import Union
+
+from .core import Factory
+from .server import Launcher
 
 
 def setup_logging(level: Union[int, str]) -> None:
     logging.basicConfig(
         level=level,
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
+
 
 setup_logging(logging.DEBUG)
 
-from .server import Launcher
-from .core import Factory
+model_repo = os.getenv("MODEL_REPOSITORY")
+tokenizer_repo = os.getenv("TOKENIZER_REPOSITORY")
 
+if model_repo is None or tokenizer_repo is None:
+    raise ValueError("Model and tokenizer must be provided")
 
-launcher = Launcher(
-    Factory.create_classifier(
-    os.getenv("MODEL_REPO_ID"),
-    os.getenv("MODEL_FILENAME"),
-    os.getenv("TOKENIZER_FILENAME")
-))
+classifier = Factory.create_classifier(model_repo, tokenizer_repo)
+
+launcher = Launcher(classifier)
+
 
 __author__ = "Eric Santos <ericshantos13@gmail.com>"
 
 __all__ = ["launcher"]
 
-__version__ = "2.2.2"
+__version__ = "3.0.0"

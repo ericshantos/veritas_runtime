@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "veritas-runtime"
-version = "2.2.2"
+version = "3.0.0"
 description = "API that analyzes news content and verifies its veracity using AI."
 requires-python = ">=3.10"
 readme = "README.md"
@@ -15,10 +15,16 @@ authors = [
 ]
 
 dependencies = [
-    "tensorflow>=2.15.0",
-    "Unidecode>=1.4.0",
-    "spacy>=3.8.0",
-    "huggingface_hub>=0.20.0",
+    "transformers>=5.5.0",
     "websockets>=15.0.1",
-    "python-dotenv"
+    "python-dotenv>=1.0.0"
+]
+
+[project.optional-dependencies]
+cpu = [
+    "torch>=2.0.0"
+]
+
+gpu = [
+    "torch>=2.0.0"
 ]
