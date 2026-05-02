@@ -6,12 +6,9 @@ from .predictor import Predictor
 
 class Factory:
     @staticmethod
-    def create_classifier(
-        model_repo: str,
-        tokenizer_repo: str,
-    ) -> NewsClassifier:
-        model = MyModel(model_repo)
-        tokenizer = MyTokenizer(tokenizer_repo)
+    def create_classifier(repo: str) -> NewsClassifier:
+        model = MyModel(repo)
+        tokenizer = MyTokenizer(repo)
 
         text_cleaner = TextCleaner()
 

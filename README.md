@@ -50,10 +50,8 @@ The runtime was built using the following libraries and tools:
 - **Python 3.11**
 
 ### Machine Learning & NLP
-- **TensorFlow / Keras** – inference with a trained LSTM model
-- **spaCy (pt_core_news_sm)** – tokenization, stopword removal, and lemmatization
-- **Unidecode** – accent normalization
-- **Hugging Face Hub** – model and tokenizer download
+- **PyTorch** – inference with a trained BERT model
+- **Transformers** – model and tokenizer loading
 
 ### Infrastructure
 - **Docker** – runtime packaging and execution

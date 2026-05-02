@@ -22,14 +22,17 @@ COPY server.py .
 
 ENV PORT=9000
 ENV HOST=0.0.0.0
-ENV MODEL_REPOSITORY="ericshantos/veritas-bert-ptbr"
-ENV TOKENIZER_REPOSITORY="neuralmind/bert-base-portuguese-cased"
+ENV REPOSITORY="ericshantos/veritas-bert-ptbr"
 ENV TRANSFORMERS_CACHE=/app/cache
+ENV HF_HUB_DISABLE_PROGRESS_BARS=1
+ENV HF_HUB_DISABLE_TELEMETRY=1
+
+RUN pip install transformers sentencepiece tokenizers accelerate
 
 RUN python -c "\
 from transformers import AutoTokenizer, AutoModelForSequenceClassification; \
 AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased'); \
-AutoModelForSequenceClassification.from_pretrained('ericshantos/veritas-bert-ptbr')"
+AutoModelForSequenceClassification.from_pretrained('ericshantos/veritas-bert-ptbr', trust_remote_code=True)"
 
 RUN rm -rf /root/.cache/pip
 

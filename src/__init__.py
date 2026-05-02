@@ -16,13 +16,12 @@ def setup_logging(level: Union[int, str]) -> None:
 
 setup_logging(logging.DEBUG)
 
-model_repo = os.getenv("MODEL_REPOSITORY")
-tokenizer_repo = os.getenv("TOKENIZER_REPOSITORY")
+repository = os.getenv("REPOSITORY")
 
-if model_repo is None or tokenizer_repo is None:
+if repository is None:
     raise ValueError("Model and tokenizer must be provided")
 
-classifier = Factory.create_classifier(model_repo, tokenizer_repo)
+classifier = Factory.create_classifier(repository)
 
 launcher = Launcher(classifier)
 

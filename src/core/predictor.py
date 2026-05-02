@@ -35,6 +35,8 @@ class Predictor:
             max_length=512,
         )
 
+        inputs.pop("token_type_ids", None)
+
         with torch.no_grad():
             outputs = self._model(**inputs)
             logits = outputs.logits

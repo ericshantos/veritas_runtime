@@ -8,12 +8,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    PreTrainedModel,
-    PreTrainedTokenizerBase,
-)
+from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
+                          PreTrainedModel, PreTrainedTokenizerBase)
 
 T = TypeVar("T")
 
@@ -44,7 +40,7 @@ class MyTokenizer(Loader[PreTrainedTokenizerBase]):
     def _load(self) -> PreTrainedTokenizerBase:
         try:
             logger.info("Loading tokenizer...")
-            return AutoTokenizer.from_pretrained(self._repo_id, local_files_only=True)
+            return AutoTokenizer.from_pretrained(self._repo_id)
         except Exception as e:
             logger.exception("Tokenizer load failed")
             raise RuntimeError("Failed to load tokenizer") from e
@@ -55,7 +51,7 @@ class MyModel(Loader[PreTrainedModel]):
         try:
             logger.info("Loading model...")
             model = AutoModelForSequenceClassification.from_pretrained(
-                self._repo_id, local_files_only=True
+                self._repo_id, trust_remote_code=True, local_files_only=True
             )
 
             model.eval()
